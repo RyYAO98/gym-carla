@@ -24,7 +24,7 @@ def main():
     'continuous_steer_range': [-0.3, 0.3],  # continuous steering angle range
     'ego_vehicle_filter': 'vehicle.lincoln*',  # filter for defining ego vehicle
     'port': 2000,  # connection port
-    'town': 'Town03',  # which town to simulate
+    'town': 'Town05',  # which town to simulate
     'task_mode': 'random',  # mode of the task, [random, roundabout (only for Town03)]
     'max_time_episode': 1000,  # maximum timesteps per episode
     'max_waypt': 12,  # maximum number of waypoints
@@ -46,6 +46,8 @@ def main():
   while True:
     action = [2.0, 0.0]
     obs,r,done,info = env.step(action)
+    print(obs)
+    env.render()
 
     if done:
       obs = env.reset()

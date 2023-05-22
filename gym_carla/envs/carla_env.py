@@ -255,6 +255,13 @@ class CarlaEnv(gym.Env):
     return self._get_obs()
   
   def step(self, action):
+
+     # top view
+    self.spectator = self.world.get_spectator()
+    transform = self.ego.get_transform()
+    self.spectator.set_transform(carla.Transform(transform.location + carla.Location(z=30),
+                                            carla.Rotation(pitch=-90)))
+        
     # Calculate acceleration and steering
     if self.discrete:
       acc = self.discrete_act[0][action//self.n_steer]
@@ -306,8 +313,9 @@ class CarlaEnv(gym.Env):
     self.np_random, seed = seeding.np_random(seed)
     return [seed]
 
-  def render(self, mode):
-    pass
+  def render(self, mode=None):
+    #pass
+    self.birdeye_render.render(self.display)
 
   def _create_vehicle_bluepprint(self, actor_filter, color=None, number_of_wheels=[4]):
     """Create the blueprint for a specific actor type.
@@ -492,8 +500,8 @@ class CarlaEnv(gym.Env):
     ## Lidar image generation
     point_cloud = []
     # Get point cloud data
-    for location in self.lidar_data:
-      point_cloud.append([location.x, location.y, -location.z])
+    for data in self.lidar_data:
+      point_cloud.append([data.point.x, data.point.y, -data.point.z]) #location
     point_cloud = np.array(point_cloud)
     # Separate the 3D space to bins for point cloud, x and y is set according to self.lidar_bin,
     # and z is set to be two bins.
