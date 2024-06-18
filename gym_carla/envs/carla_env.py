@@ -157,7 +157,7 @@ class CarlaEnv(gym.Env):
     self._clear_all_actors(['sensor.other.collision', 'sensor.lidar.ray_cast', 'sensor.camera.rgb', 'vehicle.*', 'controller.ai.walker', 'walker.*'])
 
     # Disable sync mode
-    self._set_synchronous_mode(False)
+    self._set_synchronous_mode()
 
     # Spawn surrounding vehicles
     random.shuffle(self.vehicle_spawn_points)
