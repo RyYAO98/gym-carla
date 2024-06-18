@@ -9,6 +9,27 @@ import gym
 import gym_carla
 import carla
 
+import textwrap
+from langchain_openai import ChatOpenAI
+from langchain.schema import AIMessage, HumanMessage, SystemMessage
+from langchain_community.callbacks import OpenAICallbackHandler
+
+import base64
+import numpy as np
+from PIL import Image
+from io import BytesIO
+
+
+def arr_to_base64(arr):
+  birdeye_img = Image.fromarray(arr)
+  buffered = BytesIO()
+  birdeye_img.save(buffered, format='JPEG')
+  image_bytes = buffered.getvalue()
+  base64_string = base64.b64encode(image_bytes).decode('utf-8')
+
+  return base64_string
+
+
 def main():
   # parameters for the gym_carla environment
   params = {
@@ -43,10 +64,39 @@ def main():
   env = gym.make('carla-v0', params=params)
   obs = env.reset()
 
+  # llm related settings
+  llm = ChatOpenAI(
+    temperature=0.0,
+    # top_p=0.0,
+    callbacks=[
+      OpenAICallbackHandler()
+    ],
+    model_name='gpt-4-all',
+    max_tokens=2000,
+    request_timeout=60,
+    streaming=True,
+    base_url="https://api.132006.xyz/v1"
+  )
+
   while True:
     action = [2.0, 0.0]
     obs,r,done,info = env.step(action)
-    print(obs)
+    # print(obs)
+
+    # test for llm
+    birdeye_base64 = arr_to_base64(obs['birdeye'])
+    prompt = [
+      {'type': 'text', 'text': f'Please describe the traffic scene represented by the Bird-Eye-View image.'},
+      {'type': 'image_url', 'image_url': {'url': f"data:image/jpeg;base64,{birdeye_base64}"},}
+    ]
+    messages = [HumanMessage(content=prompt)]
+    print("Agent answer:")
+    response_content = ""
+    for chunk in llm.stream(messages):
+      response_content += chunk.content
+      print(chunk.content, end="", flush=True)
+    print("\n")
+
     env.render()
 
     if done:
